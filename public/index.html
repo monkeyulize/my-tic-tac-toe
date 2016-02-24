@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Tic-Tac-Toe </title>
+		<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
+
+	</head>
+	<body>
+	<span>Game ID:</span>
+	<span id="newGameId"></span>
+
+	<table id="board">
+		<tbody>
+			<tr>
+				<td id="0-0"><span class="letter"></span></td>
+				<td id="0-1"><span class="letter"></span></td>
+				<td id="0-2"><span class="letter"></span></td>
+			</tr>
+			<tr>
+				<td id="1-0"><span class="letter"></span></td>
+				<td id="1-1"><span class="letter"></span></td>
+				<td id="1-2"><span class="letter"></span></td>
+			</tr>
+			<tr>
+				<td id="2-0"><span class="letter"></span></td>
+				<td id="2-1"><span class="letter"></span></td>
+				<td id="2-2"><span class="letter"></span></td>
+			</tr>
+		</tbody>
+
+	</table>
+	<p id="playerInfo"></p>
+	<p id="gameMessage"></p>
+	<form id="joinGame">
+		<input type="text" id="gameId">
+		<input type="submit" value="submit">
+	</form>
+
+		<script>
+		var gameId;
+		var myId;
+		var socket = io.connect(window.location.host);
+		socket.on('welcome', function(data) {
+			console.log(data);
+			$("#newGameId").html(data.newGameId);
+			myId = data.myId;
+		})
+
+		$("#joinGame").submit(function(e) {
+			e.preventDefault();
+			console.log($("#gameId").val());
+			socket.emit('gameJoin', {
+				reqGameId: $("#gameId").val()
+			});
+		});
+		socket.on('gameBegin', function(data) {
+			console.log(data);
+			gameId = data.gameId;
+		})
+		socket.on('roomFull', function(data) {
+			console.log(data);
+		})
+		socket.on('gameInfo', function(data) {
+			console.log(data);
+			if(data.gameData.p1.socket == myId) {
+				console.log("I am player 1");
+				$("#playerInfo").html("Player 1 + ('X')");
+			} else {
+				$("#playerInfo").html("Player 2 + ('O')");
+				console.log("I am player 2")
+			}
+		})
+		socket.on('moveComplete', function(data) {
+			console.log(data);
+			var squareId = [data.square_x, data.square_y].join('-');
+			//console.log($("#"+squareId).find(".letter").innerHTML)
+			$("#"+squareId).find(".letter").html(data.symbol)
+			
+		})
+		socket.on('gameComplete', function(data) {
+			console.log(data);
+			$("#gameMessage").html("Game Over! Player " + Number(data.winner+1) + " won.");
+		})
+		$("td").click(function() {
+			var square = this.id;
+			square_x = square.split('-')[0];
+			square_y = square.split('-')[1];
+
+			socket.emit('gameMove', {
+				gameId: gameId,
+				square_x: square_x,
+				square_y: square_y
+
+			});
+
+		});
+
+			// //board size
+			// var n = 3;
+
+			// var whichTurn = 0;
+
+
+			// $("td").click(function() {
+			// 	var letter = this.getElementsByTagName("span")[0];
+			// 	var square = this.id;
+			// 	//console.log(this.id);
+			// 	if(letter.innerHTML === '') {
+			// 		//console.log(whichTurn);
+			// 		if((whichTurn % 2 === 0) && (letter.used === (false || undefined))) {
+			// 			letter.innerHTML = 'X';
+			// 			testForVictory(square.split('-'), 'X');
+						
+			// 		} else {
+			// 			letter.innerHTML = 'O';
+			// 			testForVictory(square.split('-'), 'O');
+			// 		}
+			// 		letter.used = true
+			// 		if(whichTurn === 8) {
+
+			// 			$("#gameMessage").html("Game Over!");
+			// 		} else {
+			// 			whichTurn++;
+			// 		};
+					
+
+			// 	};
+			// });
+
+
+			// function testForVictory(start, symbol) {
+			// 	start = start.map(Number)
+			// 	// check columns
+			// 	for(var i = 0; i < n; i++) {
+			// 		if(getSymbol([start[0], i]) === symbol) {
+			// 			if(i === n-1) {
+							
+			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
+			// 				return;
+			// 			}
+			// 		} else {
+			// 			break;
+			// 		}
+			// 	}
+			// 	// check rows
+			// 	for(var i = 0; i < n; i++) {
+			// 		if(getSymbol([i, start[1]]) === symbol) {
+			// 			if(i === n-1) {
+							
+			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
+			// 				return;
+			// 			}
+			// 		} else {
+			// 			break;
+			// 		}
+			// 	}
+			// 	// check diagonal
+			// 	for(var i = 0; i < n; i++) {
+			// 		if(getSymbol([i, i]) === symbol) {
+			// 			if(i === n-1) {
+							
+			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
+			// 				return;
+			// 			}
+			// 		} else {
+			// 			break;
+			// 		}
+			// 	}
+			// 	// check reverse diagonal
+			// 	for(var i = 0; i < n; i++) {
+			// 		if(getSymbol([i, (n-1)-i]) === symbol) {
+			// 			if(i === n-1) {
+							
+			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
+			// 				return;
+			// 			}
+			// 		} else {
+			// 			break;
+			// 		}
+			// 	}						
+			// };
+
+
+			// function getSymbol(start) {
+			// 	return $("#"+start.join('-')).find(".letter")[0].innerHTML;
+			// };
+		</script>
+
+	</body>
+
+
+</html>
