@@ -1,0 +1,17 @@
+table, th, td {
+	border: 1px solid black;
+
+}
+tr, td {
+	width: 100px;
+	height: 100px;
+}
+
+td {
+	text-align: center;
+}
+.letter {
+	margin: 10px;
+	font-size: 90px;
+	font-family: helvetica;
+}
