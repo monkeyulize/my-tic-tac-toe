@@ -57,6 +57,7 @@
 		});
 		socket.on('gameBegin', function(data) {
 			console.log(data);
+			$("#replayBtn").prop("disabled", true);
 			gameId = data.gameId;
 		})
 		socket.on('roomFull', function(data) {
@@ -82,19 +83,23 @@
 			// }
 		})
 		socket.on('moveComplete', function(data) {
-			console.log(data);
 			var squareId = [data.square_x, data.square_y].join('-');
-			//console.log($("#"+squareId).find(".letter").innerHTML)
 			$("#"+squareId).find(".letter").html(data.symbol)
 			
 		})
 		socket.on('gameComplete', function(data) {
 			console.log(data);
-			$("#gameMessage").html("Game Over! Player " + Number(data.winner+1) + " won.");
+			if(data.winner > -1) {
+				$("#gameMessage").html("Game Over! Player " + Number(data.winner+1) + " won.");
+			} else {
+				$("#gameMessage").html("Game Over! Tie game!");
+			}
+			
 			$("#replayBtn").prop("disabled", false);
 		});
 		socket.on('replayMatch', function() {
 			resetBoard();
+			$("#replayBtn").prop("disabled", true);
 		});
 		$("td").click(function() {
 			var square = this.id;

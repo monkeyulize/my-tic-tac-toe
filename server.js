@@ -199,6 +199,10 @@ function testForVictory(session, start, symbol, callback) {
 		} else {
 			break;
 		}
+	}
+	if(session.currentMove == 9) {
+		session.winner = -2
+		callback(-2)
 	}						
 };
 
