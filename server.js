@@ -44,24 +44,18 @@ io.on('connection', function(socket) {
 				sockets.push(key);
 			}
 			console.log(sockets);
-			if(Number(coinflip()) === 0) {
-				p1_socket = sockets[0];
-				p2_socket = sockets[1];
-			} else {
-				p1_socket = sockets[1];
-				p2_socket = sockets[0];
-			}
-			console.log(p1_socket);
-			console.log(p2_socket);
 			var p1_sym = 'X';
 			var p2_sym = 'O';
 			sessions[connectTo] = {
-				p1: {side: 0, socket: p1_socket, symbol: p1_sym},
-				p2: {side: 1, socket: p2_socket, symbol: p2_sym},
+				players: {},
 				currentMove: 0,
 				gameState: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]],
 				winner: -1
 			}
+			var player0 = Number(coinflip());
+			var player1 = Number(!player0);
+			sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: 'X', wantsToReplay: false};
+			sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: 'O', wantsToReplay: false};
 			console.log(sessions[connectTo]);
 			io.to(connectTo).emit('gameInfo', {
 				gameData: sessions[connectTo]
@@ -73,33 +67,32 @@ io.on('connection', function(socket) {
 		if(sessions[data.gameId].winner === -1) {
 
 			if(sessions[data.gameId].currentMove % 2 === 0) {
-				if(socket.id == sessions[data.gameId].p1.socket) {
-					
+				if(sessions[data.gameId]['players'][socket.id].player == 0) {
 					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
 						sessions[data.gameId].currentMove++;
-						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p1.side;
+						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
 						io.to(data.gameId).emit('moveComplete', {
 							square_x: data.square_x,
 							square_y: data.square_y,
-							symbol: sessions[data.gameId].p1.symbol
+							symbol: sessions[data.gameId]['players'][socket.id].symbol
 						})	
-						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p1.side, winner);							
+						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);							
 					}
 		
 				} else {
 					// it's not your turn
 				}
 			} else {
-				if(socket.id == sessions[data.gameId].p2.socket) {
+				if(sessions[data.gameId]['players'][socket.id].player == 1) {
 					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
 						sessions[data.gameId].currentMove++;
-						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p2.side;
+						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
 						io.to(data.gameId).emit('moveComplete', {
 							square_x: data.square_x,
 							square_y: data.square_y,
-							symbol: sessions[data.gameId].p2.symbol
+							symbol: sessions[data.gameId]['players'][socket.id].symbol
 						})
-						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p2.side, winner);	
+						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);	
 					}		
 				} else {
 					// it's not your turn
@@ -114,6 +107,21 @@ io.on('connection', function(socket) {
 		}
 
 	});
+	socket.on('replay', function(data) {
+
+		sessions[data.gameId]['players'][socket.id].wantsToReplay = true;
+		var count = 0;
+		for(var key in sessions[data.gameId]['players']) {
+			if(sessions[data.gameId]['players'][key].wantsToReplay == true) {
+				count++;
+
+			}
+		}
+		if(count == 2) {
+			resetGame(data.gameId);
+			io.to(data.gameId).emit('replayMatch');			
+		}
+	});
 
 
 });
@@ -121,6 +129,18 @@ io.on('connection', function(socket) {
 app.get('/', function(req, res) {
 	res.sendfile(path.join(__dirname, '/public', 'index.html'));
 });
+
+
+
+function resetGame(sessionId) {
+	sessions[sessionId].currentMove = 0;
+	sessions[sessionId].gameState = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];
+	sessions[sessionId].winner = -1;
+	for(var key in sessions[sessionId]['players']) {
+		sessions[sessionId]['players'][key].wantsToReplay = false;
+	}
+	console.log(sessions[sessionId]);
+}
 
 function coinflip() {
 	return Math.random() < 0.5;

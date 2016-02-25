@@ -9,8 +9,8 @@
 	</head>
 	<body>
 	<span>Game ID:</span>
-	<span id="newGameId"></span>
-
+	<span id="newGameId"></span><br/>
+	<button id="replayBtn" disabled>Replay Opponent</button>
 	<table id="board">
 		<tbody>
 			<tr>
@@ -64,13 +64,22 @@
 		})
 		socket.on('gameInfo', function(data) {
 			console.log(data);
-			if(data.gameData.p1.socket == myId) {
-				console.log("I am player 1");
-				$("#playerInfo").html("Player 1 + ('X')");
-			} else {
-				$("#playerInfo").html("Player 2 + ('O')");
-				console.log("I am player 2")
+			for(var key in data.gameData.players) {
+				if(key === myId) {
+					console.log("I am player " + data.gameData.players[key].player);
+					$("#playerInfo").html("Player " + Number(data.gameData.players[key].player+1) + " ('" + data.gameData.players[key].symbol + "')");
+					break;
+				}
 			}
+
+
+			// if(data.gameData.p1.socket == myId) {
+			// 	console.log("I am player 1");
+			// 	$("#playerInfo").html("Player 1 + ('X')");
+			// } else {
+			// 	$("#playerInfo").html("Player 2 + ('O')");
+			// 	console.log("I am player 2")
+			// }
 		})
 		socket.on('moveComplete', function(data) {
 			console.log(data);
@@ -82,7 +91,11 @@
 		socket.on('gameComplete', function(data) {
 			console.log(data);
 			$("#gameMessage").html("Game Over! Player " + Number(data.winner+1) + " won.");
-		})
+			$("#replayBtn").prop("disabled", false);
+		});
+		socket.on('replayMatch', function() {
+			resetBoard();
+		});
 		$("td").click(function() {
 			var square = this.id;
 			square_x = square.split('-')[0];
@@ -96,96 +109,21 @@
 			});
 
 		});
+		$("#replayBtn").click(function() {
+			socket.emit('replay', {
+				gameId: gameId
+			});
+		});
 
-			// //board size
-			// var n = 3;
+		function resetBoard() {
+			for(var i = 0; i < 3; i++) {
+				for(var j = 0; j < 3; j++) {
+					$("#"+i+'-'+j).find(".letter").html('');
+				}
+			}
+			$("#gameMessage").html('');
+		}
 
-			// var whichTurn = 0;
-
-
-			// $("td").click(function() {
-			// 	var letter = this.getElementsByTagName("span")[0];
-			// 	var square = this.id;
-			// 	//console.log(this.id);
-			// 	if(letter.innerHTML === '') {
-			// 		//console.log(whichTurn);
-			// 		if((whichTurn % 2 === 0) && (letter.used === (false || undefined))) {
-			// 			letter.innerHTML = 'X';
-			// 			testForVictory(square.split('-'), 'X');
-						
-			// 		} else {
-			// 			letter.innerHTML = 'O';
-			// 			testForVictory(square.split('-'), 'O');
-			// 		}
-			// 		letter.used = true
-			// 		if(whichTurn === 8) {
-
-			// 			$("#gameMessage").html("Game Over!");
-			// 		} else {
-			// 			whichTurn++;
-			// 		};
-					
-
-			// 	};
-			// });
-
-
-			// function testForVictory(start, symbol) {
-			// 	start = start.map(Number)
-			// 	// check columns
-			// 	for(var i = 0; i < n; i++) {
-			// 		if(getSymbol([start[0], i]) === symbol) {
-			// 			if(i === n-1) {
-							
-			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
-			// 				return;
-			// 			}
-			// 		} else {
-			// 			break;
-			// 		}
-			// 	}
-			// 	// check rows
-			// 	for(var i = 0; i < n; i++) {
-			// 		if(getSymbol([i, start[1]]) === symbol) {
-			// 			if(i === n-1) {
-							
-			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
-			// 				return;
-			// 			}
-			// 		} else {
-			// 			break;
-			// 		}
-			// 	}
-			// 	// check diagonal
-			// 	for(var i = 0; i < n; i++) {
-			// 		if(getSymbol([i, i]) === symbol) {
-			// 			if(i === n-1) {
-							
-			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
-			// 				return;
-			// 			}
-			// 		} else {
-			// 			break;
-			// 		}
-			// 	}
-			// 	// check reverse diagonal
-			// 	for(var i = 0; i < n; i++) {
-			// 		if(getSymbol([i, (n-1)-i]) === symbol) {
-			// 			if(i === n-1) {
-							
-			// 				$("#gameMessage").html(symbol + "'s win!</br>Game Over!");
-			// 				return;
-			// 			}
-			// 		} else {
-			// 			break;
-			// 		}
-			// 	}						
-			// };
-
-
-			// function getSymbol(start) {
-			// 	return $("#"+start.join('-')).find(".letter")[0].innerHTML;
-			// };
 		</script>
 
 	</body>
