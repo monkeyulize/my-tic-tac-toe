@@ -74,27 +74,33 @@ io.on('connection', function(socket) {
 
 			if(sessions[data.gameId].currentMove % 2 === 0) {
 				if(socket.id == sessions[data.gameId].p1.socket) {
-					sessions[data.gameId].currentMove++;
-					sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p1.side;
-					io.to(data.gameId).emit('moveComplete', {
-						square_x: data.square_x,
-						square_y: data.square_y,
-						symbol: sessions[data.gameId].p1.symbol
-					})	
-					testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p1.side, winner);			
+					
+					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
+						sessions[data.gameId].currentMove++;
+						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p1.side;
+						io.to(data.gameId).emit('moveComplete', {
+							square_x: data.square_x,
+							square_y: data.square_y,
+							symbol: sessions[data.gameId].p1.symbol
+						})	
+						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p1.side, winner);							
+					}
+		
 				} else {
 					// it's not your turn
 				}
 			} else {
 				if(socket.id == sessions[data.gameId].p2.socket) {
-					sessions[data.gameId].currentMove++;
-					sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p2.side;
-					io.to(data.gameId).emit('moveComplete', {
-						square_x: data.square_x,
-						square_y: data.square_y,
-						symbol: sessions[data.gameId].p2.symbol
-					})
-					testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p2.side, winner);			
+					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
+						sessions[data.gameId].currentMove++;
+						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId].p2.side;
+						io.to(data.gameId).emit('moveComplete', {
+							square_x: data.square_x,
+							square_y: data.square_y,
+							symbol: sessions[data.gameId].p2.symbol
+						})
+						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId].p2.side, winner);	
+					}		
 				} else {
 					// it's not your turn
 				}			
