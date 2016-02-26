@@ -15,13 +15,13 @@ app.use(express.static(__dirname + '/public'));
 
 
 var sessions = {};
-
+var clients = {};
 
 
 io.on('connection', function(socket) {
 	var newGameId = shortid.generate();
 	socket.join(newGameId);
-
+	clients[socket] = {myGame: newGameId, connectedTo: ''};
 	socket.emit('welcome', {
 		newGameId: newGameId,
 		message: "Welcome to Tic-Tac-Toe!",
@@ -34,6 +34,7 @@ io.on('connection', function(socket) {
 			socket.emit('roomFull', {message: "This game is full"});
 		} else {
 			socket.join(connectTo);
+			clients[socket].connectedTo = connectTo;
 			io.to(connectTo).emit('gameBegin', {
 				players: io.sockets.adapter.rooms[connectTo],
 				gameId: connectTo,
@@ -121,6 +122,16 @@ io.on('connection', function(socket) {
 			resetGame(data.gameId);
 			io.to(data.gameId).emit('replayMatch');			
 		}
+	});
+
+	socket.on('disconnect', function() {
+		
+		var roomToNotify = clients[socket].connectedTo;
+		io.to(roomToNotify).emit('otherPlayerDisconnect');
+		resetGame(roomToNotify);
+		delete clients[socket];
+		
+
 	});
 
 

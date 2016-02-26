@@ -72,15 +72,6 @@
 					break;
 				}
 			}
-
-
-			// if(data.gameData.p1.socket == myId) {
-			// 	console.log("I am player 1");
-			// 	$("#playerInfo").html("Player 1 + ('X')");
-			// } else {
-			// 	$("#playerInfo").html("Player 2 + ('O')");
-			// 	console.log("I am player 2")
-			// }
 		})
 		socket.on('moveComplete', function(data) {
 			var squareId = [data.square_x, data.square_y].join('-');
@@ -99,6 +90,11 @@
 		});
 		socket.on('replayMatch', function() {
 			resetBoard();
+			$("#replayBtn").prop("disabled", true);
+		});
+		socket.on('otherPlayerDisconnect', function() {
+			resetBoard();
+			$("#playerInfo").html("Other player disconnected :(");
 			$("#replayBtn").prop("disabled", true);
 		});
 		$("td").click(function() {
@@ -127,6 +123,7 @@
 				}
 			}
 			$("#gameMessage").html('');
+
 		}
 
 		</script>
