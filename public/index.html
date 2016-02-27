@@ -4,130 +4,60 @@
 		<title> Tic-Tac-Toe </title>
 		<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		<script src="jquery.form.min.js"></script>
+		
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 		<link rel="stylesheet" type="text/css" href="style.css">
-
 	</head>
 	<body>
-	<span>Game ID:</span>
-	<span id="newGameId"></span><br/>
-	<button id="replayBtn" disabled>Replay Opponent</button>
-	<table id="board">
-		<tbody>
-			<tr>
-				<td id="0-0"><span class="letter"></span></td>
-				<td id="0-1"><span class="letter"></span></td>
-				<td id="0-2"><span class="letter"></span></td>
-			</tr>
-			<tr>
-				<td id="1-0"><span class="letter"></span></td>
-				<td id="1-1"><span class="letter"></span></td>
-				<td id="1-2"><span class="letter"></span></td>
-			</tr>
-			<tr>
-				<td id="2-0"><span class="letter"></span></td>
-				<td id="2-1"><span class="letter"></span></td>
-				<td id="2-2"><span class="letter"></span></td>
-			</tr>
-		</tbody>
+		<header class="nav navbar-default navbar-inverse">
+			<div class="container">
+				<span id="logo">Tic Tac Toe</span>
+			</div>
+		</header>
+		<div class="container">
+			<div class="jumbotron">
+				<span>Game ID:</span>
+				<span id="newGameId"></span><br/>
+				<button id="replayBtn" disabled>Replay Opponent</button>
+				<span id="replayStatus"></span>
+				<table id="board">
+					<tbody>
+						<tr>
+							<td id="0-0"><span class="letter"></span></td>
+							<td id="0-1"><span class="letter"></span></td>
+							<td id="0-2"><span class="letter"></span></td>
+						</tr>
+						<tr>
+							<td id="1-0"><span class="letter"></span></td>
+							<td id="1-1"><span class="letter"></span></td>
+							<td id="1-2"><span class="letter"></span></td>
+						</tr>
+						<tr>
+							<td id="2-0"><span class="letter"></span></td>
+							<td id="2-1"><span class="letter"></span></td>
+							<td id="2-2"><span class="letter"></span></td>
+						</tr>
+					</tbody>
 
-	</table>
-	<p id="playerInfo"></p>
-	<p id="gameMessage"></p>
-	<form id="joinGame">
-		<input type="text" id="gameId">
-		<input type="submit" value="submit">
-	</form>
+				</table>
+				<p id="playerInfo"></p>
+				<p id="gameMessage"></p>
+				<form id="joinGame">
+					<input type="text" id="gameId">
+					<input type="submit" value="submit">
+				</form>
+				<form id="uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
+					<input type="file" name="userPhoto">
+					<input type="hidden" name="socketId">
+					<input type="submit" value="upload image" name="submit">
+				</form>
+				<span id="uploadStatus"></span>
+			</div>
 
-		<script>
-		var gameId;
-		var myId;
-		var socket = io.connect(window.location.host);
-		socket.on('welcome', function(data) {
-			console.log(data);
-			$("#newGameId").html(data.newGameId);
-			myId = data.myId;
-		})
+		</div>
 
-		$("#joinGame").submit(function(e) {
-			e.preventDefault();
-			console.log($("#gameId").val());
-			socket.emit('gameJoin', {
-				reqGameId: $("#gameId").val()
-			});
-		});
-		socket.on('gameBegin', function(data) {
-			console.log(data);
-			$("#replayBtn").prop("disabled", true);
-			gameId = data.gameId;
-		})
-		socket.on('roomFull', function(data) {
-			console.log(data);
-		})
-		socket.on('gameInfo', function(data) {
-			console.log(data);
-			for(var key in data.gameData.players) {
-				if(key === myId) {
-					console.log("I am player " + data.gameData.players[key].player);
-					$("#playerInfo").html("Player " + Number(data.gameData.players[key].player+1) + " ('" + data.gameData.players[key].symbol + "')");
-					break;
-				}
-			}
-		})
-		socket.on('moveComplete', function(data) {
-			var squareId = [data.square_x, data.square_y].join('-');
-			$("#"+squareId).find(".letter").html(data.symbol)
-			
-		})
-		socket.on('gameComplete', function(data) {
-			console.log(data);
-			if(data.winner > -1) {
-				$("#gameMessage").html("Game Over! Player " + Number(data.winner+1) + " won.");
-			} else {
-				$("#gameMessage").html("Game Over! Tie game!");
-			}
-			
-			$("#replayBtn").prop("disabled", false);
-		});
-		socket.on('replayMatch', function() {
-			resetBoard();
-			$("#replayBtn").prop("disabled", true);
-		});
-		socket.on('otherPlayerDisconnect', function() {
-			resetBoard();
-			$("#playerInfo").html("Other player disconnected :(");
-			$("#replayBtn").prop("disabled", true);
-		});
-		$("td").click(function() {
-			var square = this.id;
-			square_x = square.split('-')[0];
-			square_y = square.split('-')[1];
-
-			socket.emit('gameMove', {
-				gameId: gameId,
-				square_x: square_x,
-				square_y: square_y
-
-			});
-
-		});
-		$("#replayBtn").click(function() {
-			socket.emit('replay', {
-				gameId: gameId
-			});
-		});
-
-		function resetBoard() {
-			for(var i = 0; i < 3; i++) {
-				for(var j = 0; j < 3; j++) {
-					$("#"+i+'-'+j).find(".letter").html('');
-				}
-			}
-			$("#gameMessage").html('');
-
-		}
-
-		</script>
-
+		<script src="ttt.js"></script>
 	</body>
 
 

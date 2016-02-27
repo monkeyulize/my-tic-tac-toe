@@ -3,9 +3,55 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var morgan      = require('morgan');
+var multer = require('multer');
 var shortid = require('shortid');
+var AWS = require('aws-sdk');
+AWS.config.loadFromPath('./AwsConfig.json');
+var s3 = new AWS.S3();
+var fs = require('fs');
+var upload = multer({dest: 'uploads/'});
+
+function uploadImage(remoteFilename, fileName, callback) {
+	var fileBuffer;
+	fs.readFile(fileName, function(err, data) {
+		if(err) {
+			console.log("file err: "  + err);
+		} else {
+			fileBuffer = data;
+			var metaData = getContentTypeByFile(fileName);
+			console.log("metadata: " + metaData);
+			var params = {
+				ACL: 'public-read',
+				Bucket: 'nodetictactoe-22616',
+				Key: remoteFilename,
+				Body: fileBuffer,
+				ContentType: metaData
+			};
+			s3.upload(params, function(err, data) {
+				console.log("error: " + err);
+				console.log(data);
+				callback(data.Location);
+			});	
+		};
+
+	});
 
 
+};
+
+function getContentTypeByFile(fileName) {
+  var rc = 'application/octet-stream';
+  var fn = fileName.toLowerCase();
+
+  if (fn.indexOf('.html') >= 0) rc = 'text/html';
+  else if (fn.indexOf('.css') >= 0) rc = 'text/css';
+  else if (fn.indexOf('.json') >= 0) rc = 'application/json';
+  else if (fn.indexOf('.js') >= 0) rc = 'application/x-javascript';
+  else if (fn.indexOf('.png') >= 0) rc = 'image/png';
+  else if (fn.indexOf('.jpg') >= 0) rc = 'image/jpg';
+
+  return rc;
+}
 
 
 // use morgan to log requests to the console
@@ -21,20 +67,20 @@ var clients = {};
 io.on('connection', function(socket) {
 	var newGameId = shortid.generate();
 	socket.join(newGameId);
-	clients[socket] = {myGame: newGameId, connectedTo: ''};
+	clients[socket.id] = {myGame: newGameId, connectedTo: ''};
 	socket.emit('welcome', {
 		newGameId: newGameId,
 		message: "Welcome to Tic-Tac-Toe!",
 		myId: socket.id
 	});
 	socket.on('gameJoin', function(data) {
-		console.log(data);
+		// console.log(data);
 		var connectTo = data.reqGameId;
 		if (io.sockets.adapter.rooms[connectTo].length >= 2) {
 			socket.emit('roomFull', {message: "This game is full"});
 		} else {
 			socket.join(connectTo);
-			clients[socket].connectedTo = connectTo;
+			clients[socket.id].connectedTo = connectTo;
 			io.to(connectTo).emit('gameBegin', {
 				players: io.sockets.adapter.rooms[connectTo],
 				gameId: connectTo,
@@ -44,7 +90,7 @@ io.on('connection', function(socket) {
 			for (var key in io.sockets.adapter.rooms[connectTo].sockets) {
 				sockets.push(key);
 			}
-			console.log(sockets);
+			//console.log(sockets);
 			var p1_sym = 'X';
 			var p2_sym = 'O';
 			sessions[connectTo] = {
@@ -55,8 +101,13 @@ io.on('connection', function(socket) {
 			}
 			var player0 = Number(coinflip());
 			var player1 = Number(!player0);
-			sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: 'X', wantsToReplay: false};
-			sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: 'O', wantsToReplay: false};
+			// console.log(clients);
+			// console.log(sockets[0]);
+			// console.log(clients[sockets[0]]);
+			p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : 'X';
+			p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : 'O';
+			sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
+			sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: p1_symbol, wantsToReplay: false};
 			console.log(sessions[connectTo]);
 			io.to(connectTo).emit('gameInfo', {
 				gameData: sessions[connectTo]
@@ -125,11 +176,22 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('disconnect', function() {
-		
-		var roomToNotify = clients[socket].connectedTo;
-		io.to(roomToNotify).emit('otherPlayerDisconnect');
-		resetGame(roomToNotify);
-		delete clients[socket];
+
+		var roomToNotify;
+		if(clients[socket.id].connectedTo) {
+			roomToNotify = clients[socket.id].connectedTo;
+		} else if(clients[socket.id].myGame) {
+			roomToNotify = clients[socket.id].myGame;
+		}
+		 
+		console.log(roomToNotify);
+		if(roomToNotify) {
+			console.log(roomToNotify);
+			io.to(roomToNotify).emit('otherPlayerDisconnect');
+			//resetGame(roomToNotify);
+			delete clients[socket];
+		}
+
 		
 
 	});
@@ -141,7 +203,19 @@ app.get('/', function(req, res) {
 	res.sendfile(path.join(__dirname, '/public', 'index.html'));
 });
 
+app.post('/api/image', upload.single('userPhoto'), function(req, res) {
+	console.log(req.file);
+	console.log(req.body);
+	var filename = req.file.path;
+	var remoteFilename = req.body.socketId + '-' + req.file.originalname;
+	
+	uploadImage(remoteFilename, filename, function(url) {
+		clients[req.body.socketId]['image'] = url;
 
+		res.json({remotefilename: remoteFilename, url: url});
+	});
+	//var remoteFilename = req.file.
+});
 
 function resetGame(sessionId) {
 	sessions[sessionId].currentMove = 0;
@@ -170,6 +244,7 @@ function testForVictory(session, start, symbol, callback) {
 				session.winner = symbol;
 				console.log(symbol + " won!");
 				callback(symbol);
+				return;
 			}
 		} else {
 			break;
@@ -182,6 +257,7 @@ function testForVictory(session, start, symbol, callback) {
 				session.winner = symbol;
 				console.log(symbol + " won!");
 				callback(symbol);
+				return;
 			}
 		} else {
 			break;
@@ -194,6 +270,7 @@ function testForVictory(session, start, symbol, callback) {
 				session.winner = symbol;
 				console.log(symbol + " won!");
 				callback(symbol);
+				return;
 			}
 		} else {
 			break;
@@ -206,6 +283,7 @@ function testForVictory(session, start, symbol, callback) {
 				session.winner = symbol;
 				console.log(symbol + " won!");
 				callback(symbol);
+				return;
 			}
 		} else {
 			break;
