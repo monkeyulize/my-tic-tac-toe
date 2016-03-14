@@ -90,9 +90,8 @@ io.on('connection', function(socket) {
 			for (var key in io.sockets.adapter.rooms[connectTo].sockets) {
 				sockets.push(key);
 			}
-			//console.log(sockets);
-			var p1_sym = 'X';
-			var p2_sym = 'O';
+			var p1_sym;
+			var p2_sym;
 			sessions[connectTo] = {
 				players: {},
 				currentMove: 0,
@@ -101,11 +100,16 @@ io.on('connection', function(socket) {
 			}
 			var player0 = Number(coinflip());
 			var player1 = Number(!player0);
-			// console.log(clients);
-			// console.log(sockets[0]);
-			// console.log(clients[sockets[0]]);
-			p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : 'X';
-			p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : 'O';
+			if(player0 === 0) {
+				p1_sym = 'X';
+				p2_sym = 'O';
+			} else {
+				p1_sym = 'O';
+				p2_sym = 'X';
+			}
+
+			p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : p1_sym;
+			p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : p2_sym;
 			sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
 			sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: p1_symbol, wantsToReplay: false};
 			console.log(sessions[connectTo]);
@@ -118,39 +122,21 @@ io.on('connection', function(socket) {
 
 		if(sessions[data.gameId].winner === -1) {
 
-			if(sessions[data.gameId].currentMove % 2 === 0) {
-				if(sessions[data.gameId]['players'][socket.id].player == 0) {
-					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
-						sessions[data.gameId].currentMove++;
-						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
-						io.to(data.gameId).emit('moveComplete', {
-							square_x: data.square_x,
-							square_y: data.square_y,
-							symbol: sessions[data.gameId]['players'][socket.id].symbol
-						})	
-						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);							
-					}
-		
-				} else {
-					// it's not your turn
+			if(sessions[data.gameId]['players'][socket.id].player == (sessions[data.gameId].currentMove % 2)) {
+				if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
+					sessions[data.gameId].currentMove++;
+					sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
+					io.to(data.gameId).emit('moveComplete', {
+						square_x: data.square_x,
+						square_y: data.square_y,
+						symbol: sessions[data.gameId]['players'][socket.id].symbol
+					})	
+					testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);							
 				}
+	
 			} else {
-				if(sessions[data.gameId]['players'][socket.id].player == 1) {
-					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
-						sessions[data.gameId].currentMove++;
-						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
-						io.to(data.gameId).emit('moveComplete', {
-							square_x: data.square_x,
-							square_y: data.square_y,
-							symbol: sessions[data.gameId]['players'][socket.id].symbol
-						})
-						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);	
-					}		
-				} else {
-					// it's not your turn
-				}			
+				// it's not your turn
 			}
-
 		}
 		function winner(symbol) {
 			io.to(data.gameId).emit('gameComplete', {
@@ -183,12 +169,8 @@ io.on('connection', function(socket) {
 		} else if(clients[socket.id].myGame) {
 			roomToNotify = clients[socket.id].myGame;
 		}
-		 
-		console.log(roomToNotify);
 		if(roomToNotify) {
-			console.log(roomToNotify);
 			io.to(roomToNotify).emit('otherPlayerDisconnect');
-			//resetGame(roomToNotify);
 			delete clients[socket];
 		}
 
@@ -214,8 +196,16 @@ app.post('/api/image', upload.single('userPhoto'), function(req, res) {
 
 		res.json({remotefilename: remoteFilename, url: url});
 	});
-	//var remoteFilename = req.file.
 });
+
+function randomizePlayers(session) {
+
+
+
+
+};
+
+
 
 function resetGame(sessionId) {
 	sessions[sessionId].currentMove = 0;

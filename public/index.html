@@ -12,48 +12,76 @@
 	<body>
 		<header class="nav navbar-default navbar-inverse">
 			<div class="container">
-				<span id="logo">Tic Tac Toe</span>
+				<span class="logo">Tic Tac Toe</span>
 			</div>
 		</header>
 		<div class="container">
 			<div class="jumbotron">
-				<span>Game ID:</span>
-				<span id="newGameId"></span><br/>
-				<button id="replayBtn" disabled>Replay Opponent</button>
-				<span id="replayStatus"></span>
-				<table id="board">
-					<tbody>
-						<tr>
-							<td id="0-0"><span class="letter"></span></td>
-							<td id="0-1"><span class="letter"></span></td>
-							<td id="0-2"><span class="letter"></span></td>
-						</tr>
-						<tr>
-							<td id="1-0"><span class="letter"></span></td>
-							<td id="1-1"><span class="letter"></span></td>
-							<td id="1-2"><span class="letter"></span></td>
-						</tr>
-						<tr>
-							<td id="2-0"><span class="letter"></span></td>
-							<td id="2-1"><span class="letter"></span></td>
-							<td id="2-2"><span class="letter"></span></td>
-						</tr>
-					</tbody>
+				<div class="row">
+					<div class="col-md-6">
+						<div>
+							<span>Game ID:</span>
+							<span class="newGameId"></span><br/>
+							<button class="replayBtn" disabled>Replay Opponent</button>
+							<span class="replayStatus"></span>
+						</div>
+						<div class="board" message="">
+							<div class="board-row">
+								<div class="square" id="0-0"></div>
+								<div class="square" id="0-1"></div>
+								<div class="square" id="0-2"></div>
+							</div>
+							<div class="board-row">
+								<div class="square" id="1-0"></div>
+								<div class="square" id="1-1"></div>
+								<div class="square" id="1-2"></div>
+							</div>
+							<div class="board-row">
+								<div class="square" id="2-0"></div>
+								<div class="square" id="2-1"></div>
+								<div class="square" id="2-2"></div>
+							</div>
 
-				</table>
-				<p id="playerInfo"></p>
-				<p id="gameMessage"></p>
-				<form id="joinGame">
-					<input type="text" id="gameId">
-					<input type="submit" value="submit">
-				</form>
-				<form id="uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
-					<input type="file" name="userPhoto">
-					<input type="hidden" name="socketId">
-					<input type="submit" value="upload image" name="submit">
-				</form>
-				<span id="uploadStatus"></span>
+
+						</div>
+
+						<p class="playerInfo"></p>
+						<p class="gameMessage"></p>
+						<form class="form joinGame">
+							<label for="gameId">Join a game</label>
+							<input type="text" name="gameId" placeholder="Game ID">
+							<input type="submit" value="submit">
+						</form>
+						<form class="form uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
+							<label>Upload custom player image</label>
+							<input type="file" name="userPhoto">
+							<input type="hidden" name="socketId">
+							<input type="submit" value="upload image" name="submit">
+						</form>
+						<span class="uploadStatus"></span>
+					</div>
+					<aside class="col-md-4">
+						<div class="gameInfo">
+							<div class="player" id="player0">
+								<span class="playerName"></span>
+								<img class="playerImage"/>
+
+
+							</div>
+							<div class="player" id="player1">
+								<span class="playerName"></span>
+								<img class="playerImage"/>
+
+							</div>
+						</div>
+
+					</aside>
+					
+				</div>
+
+				
 			</div>
+
 
 		</div>
 
