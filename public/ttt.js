@@ -1,6 +1,7 @@
 var gameId;
 var myId;
 var socket = io.connect(window.location.host);
+
 socket.on('welcome', function(data) {
 	console.log(data);
 	$(".newGameId").html(data.newGameId);
@@ -69,24 +70,22 @@ socket.on('moveComplete', function(data) {
 })
 socket.on('gameComplete', function(data) {
 	console.log(data);
-	$(".board").addClass("game-over");
+	$(".game-over").fadeIn(1000);
 	if(data.winner > -1) {
-		$(".board").attr("message", "Game Over! Player " + Number(data.winner+1) + " won!");
+		$(".game-over-message").html("Game Over! Player " + Number(data.winner+1) + " won!");
 	} else {
-		$(".board").attr("message", "Game Over! Tie game!");
+		$(".game-over-message").html("Game Over! Tie game!");
 	}
 	
 	$(".replayBtn").prop("disabled", false);
 });
 socket.on('replayMatch', function() {
-	$(".replayStatus").html("Replay started!");
-	resetBoard();
+	resetBoard(true);
 	$(".replayBtn").prop("disabled", true);
 });
 socket.on('otherPlayerDisconnect', function() {
 	resetBoard();
 	$(".playerInfo").html("Other player disconnected :(");
-	$(".replayBtn").prop("disabled", true);
 });
 $(".square").click(function() {
 	
@@ -109,16 +108,17 @@ $(".replayBtn").click(function() {
 	});
 });
 
-function resetBoard() {
+function resetBoard(replay) {
 	for(var i = 0; i < 3; i++) {
 		for(var j = 0; j < 3; j++) {
 			$("#"+i+'-'+j).empty();
 			$("#"+i+'-'+j).empty();
 		}
 	}
-	$(".gameMessage").empty();
-	$(".gameInfo").find('*').empty();
-	$(".board").removeClass("game-over");
-
+	$(".gameMessage").empty();	
+	$(".game-over").hide();
+	if(replay !== true) {
+		$(".gameInfo").find('*').empty();
+	}
 }
 

@@ -22,10 +22,12 @@
 						<div>
 							<span>Game ID:</span>
 							<span class="newGameId"></span><br/>
-							<button class="replayBtn" disabled>Replay Opponent</button>
-							<span class="replayStatus"></span>
+							
+							
 						</div>
-						<div class="board" message="">
+						<!-- <button class="replayBtn" disabled>Replay Opponent</button> -->
+						<div class="board">
+
 							<div class="board-row">
 								<div class="square" id="0-0"></div>
 								<div class="square" id="0-1"></div>
@@ -41,17 +43,18 @@
 								<div class="square" id="2-1"></div>
 								<div class="square" id="2-2"></div>
 							</div>
+							<div class="game-over">
+								<span class="game-over-message"></span>
+								<button class="replayBtn">Replay Opponent</button>
+								<span class="replayStatus"></span>
+							</div>
 
 
 						</div>
 
+
 						<p class="playerInfo"></p>
 						<p class="gameMessage"></p>
-						<form class="form joinGame">
-							<label for="gameId">Join a game</label>
-							<input type="text" name="gameId" placeholder="Game ID">
-							<input type="submit" value="submit">
-						</form>
 						<form class="form uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
 							<label>Upload custom player image</label>
 							<input type="file" name="userPhoto">
@@ -59,6 +62,12 @@
 							<input type="submit" value="upload image" name="submit">
 						</form>
 						<span class="uploadStatus"></span>
+						<form class="form joinGame">
+							<label for="gameId">Join a game</label>
+							<input type="text" name="gameId" placeholder="Game ID">
+							<input type="submit" value="submit">
+						</form>
+						
 					</div>
 					<aside class="col-md-4">
 						<div class="gameInfo">
