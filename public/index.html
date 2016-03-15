@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title> Tic-Tac-Toe </title>
+		<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
 		<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script src="jquery.form.min.js"></script>
@@ -18,31 +19,51 @@
 		<div class="container">
 			<div class="jumbotron">
 				<div class="row">
-					<div class="col-md-6">
+					<div class="col-md-8 border-right">
 						<div>
 							<span>Game ID:</span>
 							<span class="newGameId"></span><br/>
-							
-							
+							<p class="gameMessage"></p>
+							<ol>
+							<li class="optional-item">
+							<form class="form uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
+								<label>Upload custom player image</label>
+								<input type="file" name="userPhoto">
+								<input type="hidden" name="socketId">
+								<input type="submit" value="upload image" name="submit">
+							</form>
+							<span class="uploadStatus"></span>
+							</li>
+							<li>
+							<form class="form joinGame">
+								<label for="gameId">Join a game</label>
+								<input type="text" name="gameId" placeholder="Game ID">
+								<input type="submit" value="submit">
+							</form>
+							</li>
+							</ol>
+							<p class="playerInfo"></p>
 						</div>
-						<!-- <button class="replayBtn" disabled>Replay Opponent</button> -->
 						<div class="board">
+							<div class="board-rows">
+								<div class="board-row">
+									<div class="square" id="0-0"></div>
 
-							<div class="board-row">
-								<div class="square" id="0-0"></div>
-								<div class="square" id="0-1"></div>
-								<div class="square" id="0-2"></div>
+									<div class="square" id="0-1"></div>
+									<div class="square" id="0-2"></div>
+								</div>
+								<div class="board-row">
+									<div class="square" id="1-0"></div>
+									<div class="square" id="1-1"></div>
+									<div class="square" id="1-2"></div>
+								</div>
+								<div class="board-row">
+									<div class="square" id="2-0"></div>
+									<div class="square" id="2-1"></div>
+									<div class="square" id="2-2"></div>
+								</div>
 							</div>
-							<div class="board-row">
-								<div class="square" id="1-0"></div>
-								<div class="square" id="1-1"></div>
-								<div class="square" id="1-2"></div>
-							</div>
-							<div class="board-row">
-								<div class="square" id="2-0"></div>
-								<div class="square" id="2-1"></div>
-								<div class="square" id="2-2"></div>
-							</div>
+							
 							<div class="game-over">
 								<span class="game-over-message"></span>
 								<button class="replayBtn">Replay Opponent</button>
@@ -53,32 +74,22 @@
 						</div>
 
 
-						<p class="playerInfo"></p>
-						<p class="gameMessage"></p>
-						<form class="form uploadForm" enctype="multipart/form-data" action="/api/image" method="post">
-							<label>Upload custom player image</label>
-							<input type="file" name="userPhoto">
-							<input type="hidden" name="socketId">
-							<input type="submit" value="upload image" name="submit">
-						</form>
-						<span class="uploadStatus"></span>
-						<form class="form joinGame">
-							<label for="gameId">Join a game</label>
-							<input type="text" name="gameId" placeholder="Game ID">
-							<input type="submit" value="submit">
-						</form>
+						
+						
+						
+						
 						
 					</div>
-					<aside class="col-md-4">
+					<aside class="col-md-2">
 						<div class="gameInfo">
 							<div class="player" id="player0">
-								<span class="playerName"></span>
+								<p class="playerName"></p>
 								<img class="playerImage"/>
 
 
 							</div>
 							<div class="player" id="player1">
-								<span class="playerName"></span>
+								<p class="playerName"></p>
 								<img class="playerImage"/>
 
 							</div>

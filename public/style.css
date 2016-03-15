@@ -1,13 +1,31 @@
 * {
 	font-family: helvetica, arial, sans-serif;
 }
+.newGameId {
+	margin-bottom: 1em;
+}
 .board {
-	margin-top: 1em;
+	
 	display: inline-block;
+	width: 100%;
+	
 	position: relative;
 	top: 0;
 	left: 0;
 
+}
+.board:before {
+	content: '';
+	padding: 50% 0;
+	display: block;
+}
+
+.board-rows {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 
 .game-over {
@@ -26,6 +44,9 @@
 	z-index: 10;
 	
 }
+.game-over span {
+	display: block;
+}
 
 .replayBtn {
 	font-size: 0.3em;
@@ -38,22 +59,34 @@
 
 
 .square {
-	border-radius: 1em;
-	margin-right: .1em;
-	background:	hsla(165, 100%, 40%, 1);
-	width: 10em;
+	background-color: hsla(165, 100%, 40%, 1);
+
+	background-clip: content-box;
+
+	padding: 1%;
+
+	font-size: 1rem;
+	border-radius: 3em;
+	width: calc(100%  /3);
 	height: 100%;
-	text-align: center;
 	display: inline-block;
 	overflow: hidden;
 	position: relative;
+}
+.square:hover {
+	background-color: hsla(165, 100%, 20%, .5);
 
-
-
+	transition: background .5s;
 }
 
+
+
 aside {
+
 	display: inline;
+}
+.border-right {
+	border-right: 3px solid gray;
 }
 
 .form {
@@ -67,36 +100,40 @@ aside {
 	margin-right: 2em;
 	display: inline;
 }
-.square:hover {
-	background: hsla(165, 100%, 20%, .5);
-	transition: background .5s;
-}
+
 
 .board-row {
-	display: block;
-	height: 10em;
-	margin: 0;
-	padding: 0;
+	font-size: 0;
+	width: 100%;
+	height: calc(100%  /3);
+	padding: 0 ;
 }
 
-.board-row:nth-of-type(1), .board-row:nth-of-type(2) {
-	margin-bottom: .3em;
-}
+
 
 .square img {
-	padding: .5em;
 	border-radius: 2em;
-	max-height: 100%;
-	max-width: 100%;
+	max-height: 85%;
+	max-width: 85%;
+
+	margin: 0;
 	position: absolute;
 	top: 50%;
-	bottom: 50%;
+	left: 50%;
 	transform: translate(-50%, -50%);
+	margin-right: -50%;
 }
 
 .square span {
-	font-size: 7em;
+	font-size: 15em;
 
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	margin-right: -50%;
+	
 }
 
 .logo {
@@ -120,5 +157,24 @@ aside {
 .playerImage {
 	max-width: 100%;
 	max-height: 100%;
+}
+
+label {
+	font-weight: normal;
+}
+ol {
+	list-style-type: none;
+	padding-left: 0;
+	counter-reset: counter;
+}
+
+ol li:before {
+	content: "Step " counter(counter) ": ";
+	counter-increment: counter;
+	font-weight: bold;
+}
+
+ol .optional-item:before {
+	content: "Step " counter(counter) " (optional): ";
 }
 

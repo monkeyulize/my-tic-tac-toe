@@ -115,6 +115,7 @@ function resetBoard(replay) {
 			$("#"+i+'-'+j).empty();
 		}
 	}
+	$(".replayStatus").empty();
 	$(".gameMessage").empty();	
 	$(".game-over").hide();
 	if(replay !== true) {
