@@ -14,6 +14,7 @@ $(".joinGame").submit(function(e) {
 	socket.emit('gameJoin', {
 		reqGameId: gameId_val
 	});
+	$("#join-game").collapse('hide');
 });
 $(".uploadForm").submit(function(e) {
 	$(".uploadStatus").html("Uploading...");
@@ -40,18 +41,21 @@ socket.on('roomFull', function(data) {
 })
 socket.on('gameInfo', function(data) {
 	console.log(data);
+	$(".game-status").find("span").html("Connected");
 	for(var key in data.gameData.players) {
+		
+		
+		if(data.gameData.players[key].symbol.match('http')) {
+			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerImage").prop("src", data.gameData.players[key].symbol);
+		} else {
+			$(".gameInfo").find("#player"+data.gameData.players[key].player).append('<span>' + data.gameData.players[key].symbol + '</span>');
+		}
 		if(key === myId) {
 			console.log("I am player " + data.gameData.players[key].player);
-			$(".playerInfo").html("Player " + Number(data.gameData.players[key].player+1));
-
+			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1) + " (you)");
+		} else {
+			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1));
 		}
-		$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1));
-			if(data.gameData.players[key].symbol.match('http')) {
-				$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerImage").prop("src", data.gameData.players[key].symbol);
-			} else {
-				$(".gameInfo").find("#player"+data.gameData.players[key].player).append('<span>' + data.gameData.players[key].symbol + '</span>');
-			}
 	}
 
 	
@@ -85,7 +89,7 @@ socket.on('replayMatch', function() {
 });
 socket.on('otherPlayerDisconnect', function() {
 	resetBoard();
-	$(".playerInfo").html("Other player disconnected :(");
+	$(".game-status").find("span").html("Other player disconnected :(");
 });
 $(".square").click(function() {
 	

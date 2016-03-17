@@ -35,7 +35,7 @@
 	background: hsla(0, 100%, 10%, 0.5);
 	color: white;
 	z-index: 10;	
-	font-size: 5em;
+	font-size: 5rem;
 	text-align: center;
 	top: 0;
 	left: 0;
@@ -57,7 +57,10 @@
 	font-size: 0.3em;
 }
 
-
+.collapse-button {
+	display: none;
+	margin-bottom: 2rem;
+}
 .square {
 	background-color: hsla(165, 100%, 40%, 1);
 
@@ -81,13 +84,13 @@
 
 
 
-aside {
-
-	display: inline;
+aside.gameInfo {
+	display: inline-block;
 }
 .border-right {
 	border-right: 3px solid gray;
 }
+
 
 .form {
 	margin-bottom: 1em;
@@ -125,7 +128,7 @@ aside {
 }
 
 .square span {
-	font-size: 15em;
+	font-size: 15rem;
 
 	margin: 0;
 	position: absolute;
@@ -146,17 +149,24 @@ aside {
 	padding-top: 9px;
 	font-weight: bold;
 }
-
-.gameInfo .player {
-	padding: 10px;
-	width: 150px;
-	height: 150px;
-
+.gameInfo {
+	font-size: 0;	
 }
-
+.gameInfo .player {
+	font-size: 1.5rem;
+	display: block;
+	vertical-align: top;
+	padding: 0.3rem;
+	width: 50%;
+}
+p.playerName {
+	font-size: 1.5rem;
+	white-space: nowrap;
+}
 .playerImage {
 	max-width: 100%;
 	max-height: 100%;
+	display: inline;
 }
 
 label {
@@ -178,3 +188,29 @@ ol .optional-item:before {
 	content: "Step " counter(counter) " (optional): ";
 }
 
+@media (max-width: 768px) {
+	.border-right {
+		border-right: none;
+		border-bottom: 3px solid gray;
+	}
+
+	.gameInfo div {
+		display: inline-block;
+	}
+	.gameInfo .player {
+		display: inline-block;
+	}
+	.collapse-button {
+		display: inline-block;
+	}
+	.game-status {
+		display: inline;
+		vertical-align: middle;
+	}
+
+}
+@media(min-width: 990px) {
+	.join-game-info {
+		display: inline-block;
+	}
+}
