@@ -39,16 +39,27 @@ function uploadImage(remoteFilename, fileName, callback) {
 				ContentType: metaData
 			};
 			s3.upload(params, function(err, data) {
-				console.log("error: " + err);
+				if(err) console.log("error: " + err);
 				console.log(data);
-				callback(data.Location);
+				callback(data.location, data.key);
 			});	
 		};
 
 	});
-
-
 };
+
+function deleteImage(key) {
+	var params = {
+		Bucket: 'nodetictactoe-22616',
+		Key: key
+	};
+	s3.deleteObject(params, function(err, data) {
+		if(err) console.log("error: " + err);
+		else { 
+			console.log(data);
+		}
+	});
+}
 
 function getContentTypeByFile(fileName) {
   var rc = 'application/octet-stream';
@@ -128,8 +139,8 @@ io.on('connection', function(socket) {
 					p2_sym = 'X';
 				}
 
-				p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : p1_sym;
-				p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : p2_sym;
+				p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image.location : p1_sym;
+				p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image.location : p2_sym;
 				sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
 				sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: p1_symbol, wantsToReplay: false};
 				console.log(sessions[connectTo]);
@@ -189,7 +200,10 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('disconnect', function() {
-
+		if(clients[socket.id].hasOwnProperty('image')) {
+			deleteImage(clients[socket.id].image.key);
+		};
+		
 		var roomToNotify;
 		if(clients[socket.id].connectedTo) {
 			roomToNotify = clients[socket.id].connectedTo;
@@ -218,8 +232,8 @@ app.post('/api/image', upload.single('userPhoto'), function(req, res) {
 	var filename = req.file.path;
 	var remoteFilename = req.body.socketId + '-' + req.file.originalname;
 	
-	uploadImage(remoteFilename, filename, function(url) {
-		clients[req.body.socketId]['image'] = url;
+	uploadImage(remoteFilename, filename, function(url, key) {
+		clients[req.body.socketId]['image'] = {location: url, key: key};
 
 		res.json({remotefilename: remoteFilename, url: url});
 	});
