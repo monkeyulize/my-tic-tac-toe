@@ -160,7 +160,7 @@ aside.gameInfo {
 	width: 50%;
 }
 p.playerName {
-	font-size: 1.5rem;
+	font-size: 2.5rem;
 	white-space: nowrap;
 }
 .playerImage {
@@ -195,7 +195,10 @@ ol .optional-item:before {
 		border-right: none;
 		border-bottom: 3px solid gray;
 	}
-
+	p.playerName {
+		font-size: 2rem;
+		white-space: nowrap;
+	}
 	.gameInfo div {
 		display: inline-block;
 	}

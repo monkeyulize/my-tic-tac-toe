@@ -53,7 +53,7 @@ socket.on('gameInfo', function(data) {
 		}
 		if(key === myId) {
 			console.log("I am player " + data.gameData.players[key].player);
-			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1) + " (you)");
+			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1) + " <strong>(you)</strong>");
 		} else {
 			$(".gameInfo").find("#player"+data.gameData.players[key].player).find(".playerName").html("Player " + Number(data.gameData.players[key].player+1));
 		}

@@ -40,8 +40,9 @@ function uploadImage(remoteFilename, fileName, callback) {
 			};
 			s3.upload(params, function(err, data) {
 				if(err) console.log("error: " + err);
-				console.log(data);
-				callback(data.location, data.key);
+				consoleHighlight(data);
+				
+				callback(data.Location, data.key);
 			});	
 		};
 
@@ -75,6 +76,11 @@ function getContentTypeByFile(fileName) {
   return rc;
 }
 
+function consoleHighlight(message) {
+	console.log("------HIGHLIGHT------");
+	console.log(message);
+	console.log("------/HIGHLIGHT------");
+}
 
 // use morgan to log requests to the console
 app.use(morgan('dev'));
@@ -139,6 +145,7 @@ io.on('connection', function(socket) {
 					p2_sym = 'X';
 				}
 
+				// consoleHighlight(clients[sockets[0]]);
 				p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image.location : p1_sym;
 				p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image.location : p2_sym;
 				sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
@@ -233,6 +240,7 @@ app.post('/api/image', upload.single('userPhoto'), function(req, res) {
 	var remoteFilename = req.body.socketId + '-' + req.file.originalname;
 	
 	uploadImage(remoteFilename, filename, function(url, key) {
+		// consoleHighlight(url);
 		clients[req.body.socketId]['image'] = {location: url, key: key};
 
 		res.json({remotefilename: remoteFilename, url: url});
