@@ -6,7 +6,7 @@ var morgan      = require('morgan');
 var multer = require('multer');
 var shortid = require('shortid');
 var AWS = require('aws-sdk');
-
+var port = process.env.PORT || 8001;
 
 try {
 	AWS.config.loadFromPath('./AwsConfig.json');
@@ -312,19 +312,4 @@ function testForVictory(session, start, symbol, callback) {
 	}						
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-server.listen(8001);
+server.listen(port);
