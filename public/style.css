@@ -168,7 +168,9 @@ p.playerName {
 	max-height: 100%;
 	display: inline;
 }
-
+.game-status span {
+	font-size: .7em;
+}
 label {
 	font-weight: normal;
 }

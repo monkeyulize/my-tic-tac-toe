@@ -36,12 +36,13 @@ socket.on('gameBegin', function(data) {
 	$(".replayBtn").prop("disabled", true);
 	gameId = data.gameId;
 })
-socket.on('roomFull', function(data) {
-	console.log(data);
+socket.on('connectFail', function(data) {
+	$(".game-status").find("span").html(data.message);
 })
 socket.on('gameInfo', function(data) {
+	resetBoard();
 	console.log(data);
-	$(".game-status").find("span").html("Connected");
+	$(".game-status").find("span").html("Connected to " + data.gameId);
 	for(var key in data.gameData.players) {
 		
 		
@@ -123,7 +124,7 @@ function resetBoard(replay) {
 	$(".gameMessage").empty();	
 	$(".game-over").hide();
 	if(replay !== true) {
-		$(".gameInfo").find('*').empty();
+		$(".gameInfo").find('.player').find("*").empty();
 	}
 }
 

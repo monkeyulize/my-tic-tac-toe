@@ -6,7 +6,18 @@ var morgan      = require('morgan');
 var multer = require('multer');
 var shortid = require('shortid');
 var AWS = require('aws-sdk');
-AWS.config.loadFromPath('./AwsConfig.json');
+
+
+try {
+	AWS.config.loadFromPath('./AwsConfig.json');
+} catch (e) {
+	console.log(e);
+}
+
+
+
+
+
 var s3 = new AWS.S3();
 var fs = require('fs');
 var upload = multer({dest: 'uploads/'});
@@ -74,68 +85,84 @@ io.on('connection', function(socket) {
 		myId: socket.id
 	});
 	socket.on('gameJoin', function(data) {
-		// console.log(data);
-		var connectTo = data.reqGameId;
-		if (io.sockets.adapter.rooms[connectTo].length >= 2) {
-			socket.emit('roomFull', {message: "This game is full"});
-		} else {
-			socket.join(connectTo);
-			clients[socket.id].connectedTo = connectTo;
-			io.to(connectTo).emit('gameBegin', {
-				players: io.sockets.adapter.rooms[connectTo],
-				gameId: connectTo,
-				message: "Let's play Tic-Tac-Toe!"
-			});
-			var sockets = [];
-			for (var key in io.sockets.adapter.rooms[connectTo].sockets) {
-				sockets.push(key);
-			}
-			var p1_sym;
-			var p2_sym;
-			sessions[connectTo] = {
-				players: {},
-				currentMove: 0,
-				gameState: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]],
-				winner: -1
-			}
-			var player0 = Number(coinflip());
-			var player1 = Number(!player0);
-			if(player0 === 0) {
-				p1_sym = 'X';
-				p2_sym = 'O';
-			} else {
-				p1_sym = 'O';
-				p2_sym = 'X';
-			}
+		var roomToNotify = clients[socket.id].connectedTo;
+		if(roomToNotify) {
+			socket.leave(roomToNotify);
+			io.to(roomToNotify).emit('otherPlayerDisconnect');
+		};
 
-			p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : p1_sym;
-			p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : p2_sym;
-			sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
-			sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: p1_symbol, wantsToReplay: false};
-			console.log(sessions[connectTo]);
-			io.to(connectTo).emit('gameInfo', {
-				gameData: sessions[connectTo]
-			});
+
+		var connectTo = data.reqGameId.trim();
+		if(io.sockets.adapter.rooms[connectTo]) {
+
+
+			if (io.sockets.adapter.rooms[connectTo].length >= 2) {
+				socket.emit('connectFail', {message: "This game is full"});
+			} else {
+				socket.join(connectTo);
+				clients[socket.id].connectedTo = connectTo;
+				io.to(connectTo).emit('gameBegin', {
+					players: io.sockets.adapter.rooms[connectTo],
+					gameId: connectTo,
+					message: "Let's play Tic-Tac-Toe!"
+				});
+				var sockets = [];
+				for (var key in io.sockets.adapter.rooms[connectTo].sockets) {
+					sockets.push(key);
+				}
+				var p1_sym;
+				var p2_sym;
+				sessions[connectTo] = {
+					players: {},
+					currentMove: 0,
+					gameState: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]],
+					winner: -1
+				}
+				var player0 = Number(coinflip());
+				var player1 = Number(!player0);
+				if(player0 === 0) {
+					p1_sym = 'X';
+					p2_sym = 'O';
+				} else {
+					p1_sym = 'O';
+					p2_sym = 'X';
+				}
+
+				p0_symbol = clients[sockets[0]].hasOwnProperty('image') ? clients[sockets[0]].image : p1_sym;
+				p1_symbol = clients[sockets[1]].hasOwnProperty('image') ? clients[sockets[1]].image : p2_sym;
+				sessions[connectTo]['players'][sockets[0]] = {player: player0, symbol: p0_symbol, wantsToReplay: false};
+				sessions[connectTo]['players'][sockets[1]] = {player: player1, symbol: p1_symbol, wantsToReplay: false};
+				console.log(sessions[connectTo]);
+				io.to(connectTo).emit('gameInfo', {
+					gameData: sessions[connectTo],
+					gameId: connectTo
+				});
+			}
+		} else {
+			socket.emit('connectFail', {message: "This room does not exist"});
 		}
 	});
 	socket.on('gameMove', function(data) {
+		if(sessions[data.gameId]) {
 
-		if(sessions[data.gameId].winner === -1) {
 
-			if(sessions[data.gameId]['players'][socket.id].player == (sessions[data.gameId].currentMove % 2)) {
-				if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
-					sessions[data.gameId].currentMove++;
-					sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
-					io.to(data.gameId).emit('moveComplete', {
-						square_x: data.square_x,
-						square_y: data.square_y,
-						symbol: sessions[data.gameId]['players'][socket.id].symbol
-					})	
-					testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);							
+			if(sessions[data.gameId].winner === -1) {
+
+				if(sessions[data.gameId]['players'][socket.id].player == (sessions[data.gameId].currentMove % 2)) {
+					if(sessions[data.gameId].gameState[data.square_x][data.square_y] === -1) {
+						sessions[data.gameId].currentMove++;
+						sessions[data.gameId].gameState[data.square_x][data.square_y] = sessions[data.gameId]['players'][socket.id].player;
+						io.to(data.gameId).emit('moveComplete', {
+							square_x: data.square_x,
+							square_y: data.square_y,
+							symbol: sessions[data.gameId]['players'][socket.id].symbol
+						})	
+						testForVictory(sessions[data.gameId], [data.square_x, data.square_y], sessions[data.gameId]['players'][socket.id].player, winner);							
+					}
+		
+				} else {
+					// it's not your turn
 				}
-	
-			} else {
-				// it's not your turn
 			}
 		}
 		function winner(symbol) {
