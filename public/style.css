@@ -32,6 +32,7 @@
 	display: none;
 	border-radius: 1rem;
 	position: absolute;
+	background: DarkGrey;
 	background: hsla(0, 100%, 10%, 0.5);
 	color: white;
 	z-index: 10;	
@@ -62,6 +63,7 @@
 	margin-bottom: 2rem;
 }
 .square {
+	background-color: green;
 	background-color: hsla(165, 100%, 40%, 1);
 
 	background-clip: content-box;
@@ -77,6 +79,7 @@
 	position: relative;
 }
 .square:hover {
+	background-color: DarkGreen;
 	background-color: hsla(165, 100%, 20%, .5);
 
 	transition: background .5s;
